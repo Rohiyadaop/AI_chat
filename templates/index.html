@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jarvis Assistant</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #000;
+            color: #0f0;
+            height: 100vh;
+        }
+        .container {
+            display: flex;
+            flex: 1;
+            margin: 20px;
+            gap: 20px;
+        }
+        .jarvis-section {
+            flex: 2;
+            background: url("https://wallpaperset.com/w/full/2/b/3/241519.jpg") no-repeat center center; /* Replace with the actual image path */
+            background-size: cover;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 255, 0, 0.5);
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #fff; /* Ensure text is visible over the background */
+        }
+        .jarvis-section .avatar {
+            width: 150px;
+            height: 150px;
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background for contrast */
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #0f0;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .jarvis-section .dynamic-activity {
+            font-size: 16px;
+            line-height: 1.5;
+            animation: flicker 1.5s infinite alternate;
+            text-align: center;
+        }
+        .jarvis-section .dynamic-line {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #0f0;
+            text-shadow: 0 0 10px #0f0, 0 0 20px #0f0;
+            animation: vibrate 0.2s infinite, typing 3s steps(30, end) infinite, blink 0.5s step-end infinite alternate;
+            white-space: nowrap;
+            overflow: hidden;
+            border: 2px solid #0f0;
+            border-radius: 50%; /* Make it circular */
+            padding: 20px;
+            text-align: center;
+            width: 200px;
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        @keyframes flicker {
+            0% { opacity: 1; }
+            50% { opacity: 0.8; }
+            100% { opacity: 1; }
+        }
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        @keyframes blink {
+            from { border-color: transparent; }
+            to { border-color: #0f0; }
+        }
+        @keyframes vibrate {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(2px, -2px); }
+            50% { transform: translate(-2px, 2px); }
+            75% { transform: translate(2px, 2px); }
+            100% { transform: translate(0, 0); }
+        }
+        .text-block {
+            flex: 1;
+            background-color: #222;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            color: #fff;
+            overflow-y: auto; /* Enable vertical scrolling */
+            max-height: 100vmin; /* Set a fixed height for the scrollable area */
+        }
+        .text-block h2 {
+            margin-top: 0;
+            color: #0f0;
+        }
+        .text-block ul {
+            list-style: none;
+            padding: 0;
+        }
+        .text-block li {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #333;
+            border: 1px solid #444;
+            border-radius: 5px;
+        }
+        .speak-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #0f0;
+            background-color: #222;
+            border: 2px solid #0f0;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .speak-button:hover {
+            background-color: #0f0;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="jarvis-section">
+            <div class="avatar">----Ro--- </div>
+            <div class="dynamic-activity"></div>
+            <div class="dynamic-line">Hello Rohit, how can I assist you!</div>
+            <button class="speak-button" id = "speakbutton">Start Speaking</button>
+            <button class="speak-button" id = "stopbutton">End Speaking</button>
+        </div>
+        <div class="text-block">
+            <h2>conversation Text</h2>
+            <div id="response">
+                |
+            </div>
+            <ul id="log">
+                <!-- Conversation history will be dynamically added here -->
+            </ul>
+            <button class="speak-button" id="clearHistoryButton">Clear History</button> <!-- New button -->
+        </div>
+    </div>
+
+    <script>
+        const endRecordBtn = document.getElementById("stopbutton");
+        endRecordBtn.addEventListener('click', () => {
+            recognition.stop();
+            responseText.innerHTML = 'Stopped listening.';
+            const synth = window.speechSynthesis;
+            synth.cancel();
+        });
+
+        const startRecordBtn = document.getElementById("speakbutton");
+        const responseText = document.getElementById("response");
+        const conversationHistory = document.getElementById("log");
+
+        const clearHistoryButton = document.getElementById("clearHistoryButton"); // Reference to the new button
+        clearHistoryButton.addEventListener('click', () => {
+            conversationHistory.innerHTML = ''; // Clear the conversation history
+            responseText.innerHTML = '|'; // Reset the response text
+        });
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+
+        recognition.onstart = function() {
+            responseText.innerHTML = 'Listening...';
+        };
+
+        recognition.onspeechend = function() {
+            recognition.stop();
+        };
+
+        recognition.onresult = function(event) {
+            const userInput = event.results[0][0].transcript;
+            responseText.innerHTML = `You said: "${userInput}"`;
+
+            // Send user input to Flask server
+            fetch('/process_voice', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ user_input: userInput }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                const aiResponse = data.response;
+                responseText.innerHTML = `Jarvis: "${aiResponse}"`;
+
+                // Update conversation history with both user input and AI response
+                updateConversationHistory(data.conversation_history);
+
+                speakResponse(aiResponse);
+            })
+            .catch(error => {
+                responseText.innerHTML = 'Error processing request.';
+            });
+        };
+
+        startRecordBtn.addEventListener('click', () => {
+            recognition.start();
+        });
+
+        // Update the conversation history section
+        function updateConversationHistory(history) {
+            conversationHistory.innerHTML = ''; // Clear existing history
+
+            history.forEach(entry => {
+                const historyEntry = document.createElement('div');
+                historyEntry.classList.add('history-entry');
+
+                const userInput = document.createElement('div');
+                userInput.classList.add('user-input');
+                userInput.innerHTML = `You: ${entry.user}`;
+
+                const aiResponse = document.createElement('div');
+                aiResponse.classList.add('ai-response');
+                aiResponse.innerHTML = `Jarvis: ${entry.ai}`;
+
+                historyEntry.appendChild(userInput);
+                historyEntry.appendChild(aiResponse);
+
+                conversationHistory.appendChild(historyEntry);
+            });
+        }
+
+        // Use the SpeechSynthesis API to speak the AI response
+        function speakResponse(text) {
+            const synth = window.speechSynthesis;
+            const utterance = new SpeechSynthesisUtterance(text);
+            synth.speak(utterance);
+        }
+    </script>
+</body>
+</html>

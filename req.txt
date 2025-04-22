@@ -1,0 +1,3 @@
+api key =  AIzaSyBB0mZ-Ca38pyXb3VvH6kuTA83OcHtvouw
+
+pip install google_generativeai,flask , 
